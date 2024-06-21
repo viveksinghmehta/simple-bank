@@ -1,0 +1,6 @@
+
+.env.debug
+.env.production
+.vscode/launch.json
+.vscode/tasks.json
+simple-bank
