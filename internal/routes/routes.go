@@ -1,13 +1,11 @@
 package routes
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"simple-bank/internal"
 	models "simple-bank/internal/Models"
 	"simple-bank/internal/database"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -20,50 +18,63 @@ func SetupRouter() *gin.Engine {
 	db = database.LoadDatabase()
 
 	r.POST("/signup", signup)
-	r.POST("/updateprofile", authenticateMiddleware, updateprofile)
+	r.POST("/updateprofile", internal.AuthenticateMiddleware, updateprofile)
 
 	return r
 }
 
-func authenticateMiddleware(c *gin.Context) {
-	// Retrieve the token from the request headers
-	token := c.GetHeader("Authorization")
-	if token == "" {
-		fmt.Println("Token missing in request")
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"code":    http.StatusUnauthorized,
-			"message": "Auth token is missing in the requst headers",
-		})
-		return
-	}
-
-	authToken := strings.Split(token, " ")[1]
-
-	if authToken == "" {
-		fmt.Println("Token missing in request")
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"code":    http.StatusUnauthorized,
-			"message": "Auth token is missing in the requst headers",
-		})
-		return
-	}
-
-	// Verify the token
-	_, error := internal.VerifyToken(authToken)
-	if error != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"code":    http.StatusUnauthorized,
-			"message": "Auth token is not valid",
-		})
-		return
-	}
-	c.Next()
-}
-
 func updateprofile(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"code": http.StatusOK,
-	})
+	// Retrieve the token from the request headers
+	token := c.GetString("token")
+	if token == "" {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			"code":    http.StatusUnauthorized,
+			"message": "could not find the auth token the request",
+		})
+		return
+	}
+
+	var body models.UpdateNameModel
+	error := c.BindJSON(&body)
+
+	if error != nil && (body.FirstName == nil || body.MiddleName == nil || body.LastName == nil) {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "Can not decode Request body",
+		})
+		return
+	}
+
+	var user models.User
+
+	// Find the user with the auth token
+	result := db.Where("authentication_token = ?", token).First(&user)
+	if result.RowsAffected == 1 {
+		// set the new values to user values
+		user.FirstName = body.FirstName
+		user.MiddleName = body.MiddleName
+		user.LastName = body.LastName
+
+		// save the user
+		result = db.Save(&user)
+		if result.RowsAffected == 1 {
+			c.JSON(http.StatusOK, gin.H{
+				"code":    http.StatusOK,
+				"message": "Saved the new values of user",
+				"user":    user,
+			})
+		} else {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"code":    http.StatusUnauthorized,
+				"message": "could not find the user with the given auth token",
+			})
+		}
+	} else {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			"code":    http.StatusUnauthorized,
+			"message": "Could not save the values of user",
+		})
+	}
 }
 
 func signup(c *gin.Context) {
