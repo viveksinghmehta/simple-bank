@@ -35,6 +35,7 @@ func updateprofile(c *gin.Context) {
 	}
 
 	var body models.UpdateNameModel
+	// decode the request body in model
 	error := c.BindJSON(&body)
 
 	if error != nil && (body.FirstName == nil || body.MiddleName == nil || body.LastName == nil) {
