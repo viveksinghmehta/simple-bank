@@ -12,17 +12,29 @@ import (
 )
 
 func LoadDatabase() *gorm.DB {
+	loadTheEnvfile()
+	DB_URL := os.Getenv("DB_URL")
+	db, err := gorm.Open(postgres.Open(DB_URL), &gorm.Config{})
+	if err != nil {
+		log.Fatal("Error making connection to the DATABASE")
+	}
+	db.AutoMigrate(&models.User{})
+	return db
+}
+
+func loadTheEnvfile() {
 	// Assuming APP_ENV is set to either "debug" or "production"
 	env := os.Getenv("APP_ENV")
-	dir := os.Getenv("PROJECT_DIR")
+
 	// Load the appropriate.env file based on the environment
+	dir := os.Getenv("PROJECT_DIR")
+
 	var err error
+	// Construct the path to the .env.debug file
 	if env == "debug" {
-		// Construct the path to the .env.debug file
 		envPath := filepath.Join(dir, ".env.debug")
 		err = godotenv.Load(envPath)
 	} else if env == "production" {
-		// Construct the path to the .env.debug file
 		envPath := filepath.Join(dir, ".env.production")
 		err = godotenv.Load(envPath)
 	} else {
@@ -31,11 +43,4 @@ func LoadDatabase() *gorm.DB {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	DB_URL := os.Getenv("DB_URL")
-	db, err := gorm.Open(postgres.Open(DB_URL), &gorm.Config{})
-	if err != nil {
-		log.Fatal("Error making connection to the DATABASE")
-	}
-	db.AutoMigrate(&models.User{})
-	return db
 }

@@ -82,16 +82,16 @@ func signup(c *gin.Context) {
 	result := db.Where("email = ?", body.Email).First(&user)
 
 	if result.RowsAffected == 0 {
-		// Auth token for 7 days
-		authToken, error := internal.CreateToken("viveksinghmehta.smr@gmail.com", (24 * 7))
+		// Auth token for 1 days
+		authToken, error := internal.CreateToken(body.Email, (24 * 1))
 		if error != nil {
-			log.Fatal("Can't create token")
+			log.Fatal("Can't create auth token")
 		}
 
 		// Refresh token for 30 days
-		refreshToken, error := internal.CreateToken("viveksinghmehta.smr@gmail.com", (24 * 30))
+		refreshToken, error := internal.CreateToken(body.Email, (24 * 30))
 		if error != nil {
-			log.Fatal("Can't create token")
+			log.Fatal("Can't create refresh token")
 		}
 
 		user = models.User{

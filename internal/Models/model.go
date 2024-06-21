@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -35,7 +34,6 @@ type User struct {
 // BeforeCreate will set a UUID rather than numeric ID.
 func (base *Base) BeforeCreate(scope *gorm.DB) error {
 	uuid, error := uuid.NewV7()
-	fmt.Println(uuid)
 	if error != nil {
 		log.Fatal("Can't create UUID")
 	}
