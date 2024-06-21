@@ -3,6 +3,7 @@ package database
 import (
 	"log"
 	"os"
+	"path/filepath"
 	models "simple-bank/internal/Models"
 
 	"github.com/joho/godotenv"
@@ -13,16 +14,20 @@ import (
 func LoadDatabase() *gorm.DB {
 	// Assuming APP_ENV is set to either "debug" or "production"
 	env := os.Getenv("APP_ENV")
+	dir := os.Getenv("PROJECT_DIR")
 	// Load the appropriate.env file based on the environment
 	var err error
 	if env == "debug" {
-		err = godotenv.Load(".env.debug")
+		// Construct the path to the .env.debug file
+		envPath := filepath.Join(dir, ".env.debug")
+		err = godotenv.Load(envPath)
 	} else if env == "production" {
-		err = godotenv.Load(".env.production")
+		// Construct the path to the .env.debug file
+		envPath := filepath.Join(dir, ".env.production")
+		err = godotenv.Load(envPath)
 	} else {
 		log.Fatal("Unsupported environment")
 	}
-	// err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
