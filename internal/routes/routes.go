@@ -19,8 +19,43 @@ func SetupRouter() *gin.Engine {
 
 	r.POST("/signup", signup)
 	r.POST("/updateprofile", internal.AuthenticateMiddleware, updateprofile)
-
+	r.GET("/getuser", getUser)
+	r.GET("/login", login)
 	return r
+}
+
+func login(c *gin.Context) {
+
+	//retrive the email and password
+	var body models.SignUpModel
+	error := c.BindJSON(&body)
+
+	// decode the email and password
+	if error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "Can not decode Request body",
+		})
+	}
+
+	var user models.User
+	result := db.Where(&models.User{Email: body.Email, Password: body.Password}).Find(&user)
+	if result.Error != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code":    http.StatusUnauthorized,
+			"message": "email or password is wrong",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"id":            user.ID,
+		"auth_token":    user.AuthenticationToken,
+		"refresh_token": user.RefreshToken,
+	})
+}
+
+func getUser(c *gin.Context) {
+
 }
 
 func updateprofile(c *gin.Context) {
