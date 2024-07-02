@@ -19,6 +19,7 @@ func LoadDatabase() *gorm.DB {
 		log.Fatal("Error making connection to the DATABASE")
 	}
 	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.Bank{})
 	return db
 }
 
