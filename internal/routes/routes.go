@@ -15,7 +15,7 @@ var db *gorm.DB
 
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
-	db = database.LoadDatabase()
+	db = database.ConnectDB()
 
 	r.POST("/signup", signup)
 	r.POST("/updateprofile", internal.AuthenticateMiddleware, updateprofile)
