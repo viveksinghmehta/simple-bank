@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func LoadDatabase() *gorm.DB {
+func ConnectDB() *gorm.DB {
 	loadTheEnvfile()
 	DB_URL := os.Getenv("DB_URL")
 	db, err := gorm.Open(postgres.Open(DB_URL), &gorm.Config{})
